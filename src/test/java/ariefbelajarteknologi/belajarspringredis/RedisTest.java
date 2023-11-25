@@ -3,10 +3,7 @@ package ariefbelajarteknologi.belajarspringredis;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.ListOperations;
-import org.springframework.data.redis.core.SetOperations;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
 import java.util.Set;
@@ -64,5 +61,18 @@ public class RedisTest {
         Set<String> students = operations.members("students");
         assertEquals(3, students.size());
         assertThat(students, hasItems("Erlang", "Anggara", "Widjaksono"));
+    }
+
+    @Test
+    void zSet() {
+        ZSetOperations<String, String> operations = redisTemplate.opsForZSet();
+
+        operations.add("score", "Arief", 49);
+        operations.add("score", "Erlang", 62);
+        operations.add("score", "Parhan", 61);
+
+        assertEquals("Erlang", operations.popMax("score").getValue());
+        assertEquals("Parhan", operations.popMax("score").getValue());
+        assertEquals("Arief", operations.popMax("score").getValue());
     }
 }
