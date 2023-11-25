@@ -3,18 +3,16 @@ package ariefbelajarteknologi.belajarspringredis;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
-public class StringTest {
+public class RedisTest {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -33,5 +31,18 @@ public class StringTest {
 
         Thread.sleep(Duration.ofSeconds(3));
         assertNull(operations.get("name"));
+    }
+
+    @Test
+    void list() {
+        ListOperations<String, String> operations = redisTemplate.opsForList();
+
+        operations.rightPush("names", "Arief");
+        operations.rightPush("names", "Karditya");
+        operations.rightPush("names", "Hermawan");
+
+        assertEquals("Arief", operations.leftPop("names"));
+        assertEquals("Karditya", operations.leftPop("names"));
+        assertEquals("Hermawan", operations.leftPop("names"));
     }
 }
