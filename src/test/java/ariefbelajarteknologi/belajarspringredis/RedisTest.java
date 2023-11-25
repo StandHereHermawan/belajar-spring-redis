@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -74,5 +75,36 @@ public class RedisTest {
         assertEquals("Erlang", operations.popMax("score").getValue());
         assertEquals("Parhan", operations.popMax("score").getValue());
         assertEquals("Arief", operations.popMax("score").getValue());
+    }
+
+    @Test
+    void hashOpsWithManualDeclaration() {
+        HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
+
+        operations.put("user:1", "id", "1");
+        operations.put("user:1", "name", "Arief");
+        operations.put("user:1", "email", "arief@example.com");
+
+        assertEquals("1", operations.get("user:1", "id"));
+        assertEquals("Arief", operations.get("user:1", "name"));
+        assertEquals("arief@example.com", operations.get("user:1", "email"));
+
+        redisTemplate.delete("user:1");
+    }
+
+    @Test
+    void hashOpsWithMapObject() {
+        HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
+
+        HashMap<Object, Object> mapData = new HashMap<>();
+        mapData.put("id", "1");
+        mapData.put("name", "Arief");
+        mapData.put("email", "arief@example.com");
+
+        operations.putAll("user:1", mapData);
+
+        assertEquals("1", operations.get("user:1", "id"));
+        assertEquals("Arief", operations.get("user:1", "name"));
+        assertEquals("arief@example.com", operations.get("user:1", "email"));
     }
 }
