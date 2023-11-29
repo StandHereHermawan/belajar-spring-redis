@@ -130,4 +130,15 @@ public class RedisTest {
         assertEquals("Mie Gacoan Gatsu", commerce.getContent().get(0).getContent().getName());
         assertEquals("OYO 2625", commerce.getContent().get(1).getContent().getName());
     }
+
+    @Test
+    void hyperLogLog() {
+        HyperLogLogOperations<String, String> operations = redisTemplate.opsForHyperLogLog();
+
+        operations.add("traffics", "Arief", "Erlang", "Indra");
+        operations.add("traffics", "Erlang", "Indra", "Adit");
+        operations.add("traffics", "Rizky", "Miftahul", "Atqia");
+
+        assertEquals(7L, operations.size("traffics"));
+    }
 }
