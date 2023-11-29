@@ -3,6 +3,8 @@ package ariefbelajarteknologi.belajarspringredis;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.geo.*;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
@@ -106,5 +108,26 @@ public class RedisTest {
         assertEquals("1", operations.get("user:1", "id"));
         assertEquals("Arief", operations.get("user:1", "name"));
         assertEquals("arief@example.com", operations.get("user:1", "email"));
+    }
+
+    @Test
+    void geo() {
+        GeoOperations<String, String> operations = redisTemplate.opsForGeo();
+
+        operations.add("commerce", new Point(107.62881816326308, -6.924672030896318), "OYO 2625");
+        operations.add("commerce", new Point(107.62794636185166, -6.924843575789419), "Mie Gacoan Gatsu");
+        operations.add("commerce", new Point(107.62348048387767, -6.923325866955385), "Hotel Papandayan");
+
+        Distance distance = operations.distance("commerce", "OYO 2625", "Hotel Papandayan", Metrics.KILOMETERS);
+        assertEquals(new Distance(0.6081, Metrics.KILOMETERS), distance);
+
+        GeoResults<RedisGeoCommands.GeoLocation<String>> commerce = operations.search("commerce", new Circle(
+                new Point(107.6271439064675, -6.924359336921793),
+                new Distance(0.3, Metrics.KILOMETERS)
+        ));
+
+        assertEquals(2, commerce.getContent().size());
+        assertEquals("Mie Gacoan Gatsu", commerce.getContent().get(0).getContent().getName());
+        assertEquals("OYO 2625", commerce.getContent().get(1).getContent().getName());
     }
 }
