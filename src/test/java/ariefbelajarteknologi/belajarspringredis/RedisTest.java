@@ -10,10 +10,11 @@ import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -160,5 +161,24 @@ public class RedisTest {
 
         assertEquals("Arief", redisTemplate.opsForValue().get("member1"));
         assertEquals("Gema", redisTemplate.opsForValue().get("member2"));
+    }
+
+    @Test
+    void pipeline() {
+        List<Object> statuses = redisTemplate.executePipelined(new SessionCallback<Object>() {
+            @Override
+            public Object execute(RedisOperations operations) throws DataAccessException {
+                operations.opsForValue().set("test1", "Arief", Duration.ofSeconds(3));
+                operations.opsForValue().set("test2", "Arief", Duration.ofSeconds(3));
+                operations.opsForValue().set("test3", "Arief", Duration.ofSeconds(3));
+                operations.opsForValue().set("test4", "Arief", Duration.ofSeconds(3));
+                operations.opsForValue().set("test5", "Arief", Duration.ofSeconds(3));
+                return null;
+            }
+        });
+
+        assertThat(statuses, hasSize(5));
+        assertThat(statuses, hasItem(true));
+        assertThat(statuses, not(hasItem(false)));
     }
 }
