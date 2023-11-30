@@ -3,6 +3,7 @@ package ariefbelajarteknologi.belajarspringredis;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.*;
@@ -140,5 +141,24 @@ public class RedisTest {
         operations.add("traffics", "Rizky", "Miftahul", "Atqia");
 
         assertEquals(7L, operations.size("traffics"));
+    }
+
+    @Test
+    void transaction() {
+        redisTemplate.execute(new SessionCallback<Object>() {
+            @Override
+            public Object execute(RedisOperations operations) throws DataAccessException {
+                operations.multi();
+
+                operations.opsForValue().set("member1", "Arief",Duration.ofSeconds(3));
+                operations.opsForValue().set("member2", "Gema",Duration.ofSeconds(3));
+
+                operations.exec();
+                return null;
+            }
+        });
+
+        assertEquals("Arief", redisTemplate.opsForValue().get("member1"));
+        assertEquals("Gema", redisTemplate.opsForValue().get("member2"));
     }
 }
