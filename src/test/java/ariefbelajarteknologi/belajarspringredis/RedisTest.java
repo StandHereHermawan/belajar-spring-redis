@@ -5,12 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.*;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -180,5 +186,37 @@ public class RedisTest {
         assertThat(statuses, hasSize(5));
         assertThat(statuses, hasItem(true));
         assertThat(statuses, not(hasItem(false)));
+    }
+
+    @Test
+    void publishStream() {
+        StreamOperations<String, Object, Object> operations = redisTemplate.opsForStream();
+
+        MapRecord<String, String, String> record = MapRecord.create("stream-1", Map.of(
+                "name", "Hilmi Akbar Muharrom",
+                "address", "Bandung"
+        ));
+
+        for (int i = 0; i < 10; i++) {
+            operations.add(record);
+        }
+    }
+
+    @Test
+    void subscribeStream() {
+        StreamOperations<String, Object, Object> operations = redisTemplate.opsForStream();
+
+        try {
+            operations.createGroup("stream-1","sample-group");
+        } catch (RedisSystemException exception) {
+            // group already exists
+        }
+
+        List<MapRecord<String, Object, Object>> records = operations.read(Consumer.from("sample-group", "sample-1"),
+                StreamOffset.create("stream-1", ReadOffset.from(String.valueOf(2))));
+
+        for (MapRecord<String, Object, Object> record : records) {
+            System.out.println(record);
+        }
     }
 }
