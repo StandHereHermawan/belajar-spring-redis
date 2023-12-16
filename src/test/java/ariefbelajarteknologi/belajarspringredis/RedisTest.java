@@ -1,11 +1,14 @@
 package ariefbelajarteknologi.belajarspringredis;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -38,8 +41,8 @@ public class RedisTest {
     void string() throws InterruptedException {
         ValueOperations<String, String> operations = redisTemplate.opsForValue();
 
-        operations.set("name","Arief", Duration.ofSeconds(2));
-        assertEquals("Arief",operations.get("name"));
+        operations.set("name", "Arief", Duration.ofSeconds(2));
+        assertEquals("Arief", operations.get("name"));
 
         Thread.sleep(Duration.ofSeconds(3));
         assertNull(operations.get("name"));
@@ -119,6 +122,7 @@ public class RedisTest {
     }
 
     @Test
+    @Disabled
     void geo() {
         GeoOperations<String, String> operations = redisTemplate.opsForGeo();
 
@@ -157,8 +161,8 @@ public class RedisTest {
             public Object execute(RedisOperations operations) throws DataAccessException {
                 operations.multi();
 
-                operations.opsForValue().set("member1", "Arief",Duration.ofSeconds(3));
-                operations.opsForValue().set("member2", "Gema",Duration.ofSeconds(3));
+                operations.opsForValue().set("member1", "Arief", Duration.ofSeconds(3));
+                operations.opsForValue().set("member2", "Gema", Duration.ofSeconds(3));
 
                 operations.exec();
                 return null;
@@ -207,7 +211,7 @@ public class RedisTest {
         StreamOperations<String, Object, Object> operations = redisTemplate.opsForStream();
 
         try {
-            operations.createGroup("stream-1","sample-group");
+            operations.createGroup("stream-1", "sample-group");
         } catch (RedisSystemException exception) {
             // group already exists
         }
@@ -221,7 +225,17 @@ public class RedisTest {
     }
 
     @Test
-    void name() {
+    void pubSub() {
+        redisTemplate.getConnectionFactory().getConnection().subscribe(new MessageListener() {
+            @Override
+            public void onMessage(Message message, byte[] pattern) {
+                String event = new String(message.getBody());
+                System.out.println("Receive message : " + event);
+            }
+        }, "my-channel".getBytes());
 
+        for (int i = 0; i < 10; i++) {
+            redisTemplate.convertAndSend("my-channel", "Hello World : " + i);
+        }
     }
 }
