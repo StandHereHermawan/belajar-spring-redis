@@ -15,6 +15,7 @@ import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.support.collections.RedisList;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -237,5 +238,18 @@ public class RedisTest {
         for (int i = 0; i < 10; i++) {
             redisTemplate.convertAndSend("my-channel", "Hello World : " + i);
         }
+    }
+
+    @Test
+    void redisList() {
+        List<String> list = RedisList.create("names", redisTemplate);
+        list.add("Arief");
+        list.add("Erlang");
+        list.add("Indra");
+        list.add("Fatan");
+        assertThat(list, hasItems("Arief", "Erlang", "Indra", "Fatan"));
+
+        List<String> result = redisTemplate.opsForList().range("names", 0, -1);
+        assertThat(result, hasItems("Arief", "Erlang", "Indra", "Fatan"));
     }
 }
