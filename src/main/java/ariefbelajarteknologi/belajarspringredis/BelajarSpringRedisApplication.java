@@ -1,6 +1,7 @@
 package ariefbelajarteknologi.belajarspringredis;
 
 import ariefbelajarteknologi.belajarspringredis.entity.Order;
+import ariefbelajarteknologi.belajarspringredis.listener.CustomerListener;
 import ariefbelajarteknologi.belajarspringredis.listener.OrderListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.Subscription;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -26,6 +29,15 @@ public class BelajarSpringRedisApplication {
 
 	@Autowired
 	private StringRedisTemplate redisTemplate;
+
+	@Bean
+	public RedisMessageListenerContainer messageListenerContainer(RedisConnectionFactory connectionFactory,
+																  CustomerListener customerListener){
+		var container = new RedisMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);
+		container.addMessageListener(customerListener, new ChannelTopic("customers"));
+		return container;
+	}
 
 	@Bean
 	public Subscription orderSubscription(
@@ -63,6 +75,6 @@ public class BelajarSpringRedisApplication {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(BelajarSpringRedisApplication.class, args);
+		SpringApplication	.run(BelajarSpringRedisApplication.class, args);
 	}
 }
