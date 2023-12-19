@@ -16,6 +16,7 @@ import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.support.collections.RedisList;
+import org.springframework.data.redis.support.collections.RedisSet;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -251,5 +252,18 @@ public class RedisTest {
 
         List<String> result = redisTemplate.opsForList().range("names", 0, -1);
         assertThat(result, hasItems("Arief", "Erlang", "Indra", "Fatan"));
+    }
+
+    @Test
+    void redisSet() {
+        Set<String> set = RedisSet.create("traffic", redisTemplate);
+        set.addAll(Set.of("Arief", "Erlang", "Indra", "Fatan"));
+        set.addAll(Set.of("Arief", "Karditya", "Anggara", "Basyari"));
+        set.addAll(Set.of("Julia", "Karditya", "Anggara", "Basyari"));
+        assertThat(set, hasItems("Arief", "Karditya", "Erlang", "Anggara", "Fatan", "Basyari", "Indra", "Julia"));
+
+        Set<String> members = redisTemplate.opsForSet().members("traffic");
+        assertThat(members, hasItems("Arief", "Karditya", "Erlang", "Anggara", "Fatan", "Basyari", "Indra", "Julia"));
+
     }
 }
