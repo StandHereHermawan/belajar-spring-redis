@@ -15,6 +15,7 @@ import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.support.collections.DefaultRedisMap;
 import org.springframework.data.redis.support.collections.RedisList;
 import org.springframework.data.redis.support.collections.RedisSet;
 import org.springframework.data.redis.support.collections.RedisZSet;
@@ -283,5 +284,18 @@ public class RedisTest {
         assertEquals("Erlang", set.popLast());
         assertEquals("Indra", set.popLast());
         assertEquals("Arief", set.popLast());
+    }
+
+    @Test
+    void redisMap() {
+        Map<String, String> map = new DefaultRedisMap<>("user:1", redisTemplate);
+        map.put("name", "Arief");
+        map.put("address", "Indonesia");
+        assertThat(map, hasEntry("name", "Arief"));
+        assertThat(map, hasEntry("address", "Indonesia"));
+
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries("user:1");
+        assertThat(entries, hasEntry("name", "Arief"));
+        assertThat(entries, hasEntry("address", "Indonesia"));
     }
 }
