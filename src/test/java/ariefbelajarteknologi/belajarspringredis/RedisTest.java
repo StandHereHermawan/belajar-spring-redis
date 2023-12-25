@@ -1,5 +1,7 @@
 package ariefbelajarteknologi.belajarspringredis;
 
+import ariefbelajarteknologi.belajarspringredis.entity.Product;
+import ariefbelajarteknologi.belajarspringredis.repository.ProductRepository;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,9 @@ public class RedisTest {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     @Test
     void redisTemplate() {
@@ -297,5 +302,23 @@ public class RedisTest {
         Map<Object, Object> entries = redisTemplate.opsForHash().entries("user:1");
         assertThat(entries, hasEntry("name", "Arief"));
         assertThat(entries, hasEntry("address", "Indonesia"));
+    }
+
+    @Test
+    void repository() {
+        Product product = Product.builder()
+                .id("1")
+                .name("Pizza Tuna Melt")
+                .price(110_000L)
+                .build();
+        productRepository.save(product);
+
+        Product query = productRepository.findById("1").get();
+        assertEquals(product, query);
+
+        Map<Object, Object> map = redisTemplate.opsForHash().entries("products:1");
+        assertEquals(product.getId(),map.get("id"));
+        assertEquals(product.getName(),map.get("name"));
+        assertEquals(product.getPrice().toString(),map.get("price"));
     }
 }
