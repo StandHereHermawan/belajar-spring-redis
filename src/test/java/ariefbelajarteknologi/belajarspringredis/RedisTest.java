@@ -321,4 +321,20 @@ public class RedisTest {
         assertEquals(product.getName(),map.get("name"));
         assertEquals(product.getPrice().toString(),map.get("price"));
     }
+
+    @Test
+    void ttl() throws InterruptedException {
+        Product product = Product.builder()
+                .id("1")
+                .name("Pizza Chicken Supreme")
+                .price(110_000L)
+                .ttl(3L)
+                .build();
+        productRepository.save(product);
+
+        assertTrue(productRepository.findById("1").isPresent());
+
+        Thread.sleep(Duration.ofSeconds(5));
+        assertFalse(productRepository.findById("1").isPresent());
+    }
 }
