@@ -26,4 +26,5 @@ public class Product {
 
     @TimeToLive(unit = TimeUnit.SECONDS)
     private Long ttl = -1L;
+
 }
