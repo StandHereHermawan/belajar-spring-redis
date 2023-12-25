@@ -336,5 +336,6 @@ public class RedisTest {
 
         Thread.sleep(Duration.ofSeconds(5));
         assertFalse(productRepository.findById("1").isPresent());
+
     }
 }
