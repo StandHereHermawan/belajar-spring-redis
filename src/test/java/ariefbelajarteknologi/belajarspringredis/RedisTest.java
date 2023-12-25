@@ -2,6 +2,7 @@ package ariefbelajarteknologi.belajarspringredis;
 
 import ariefbelajarteknologi.belajarspringredis.entity.Product;
 import ariefbelajarteknologi.belajarspringredis.repository.ProductRepository;
+import ariefbelajarteknologi.belajarspringredis.service.ProductService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,9 @@ public class RedisTest {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private ProductService productService;
 
     @Test
     void redisTemplate() {
@@ -349,13 +353,49 @@ public class RedisTest {
         cache.put("Arief", 85);
         cache.put("Hilmi", 85);
 
-        assertEquals(85,cache.get("Arief",Integer.class));
-        assertEquals(85,cache.get("Hilmi",Integer.class));
+        assertEquals(85, cache.get("Arief", Integer.class));
+        assertEquals(85, cache.get("Hilmi", Integer.class));
 
         cache.evict("Arief");
         cache.evict("Hilmi");
 
         assertNull(cache.get("Arief"));
         assertNull(cache.get("Hilmi"));
+    }
+
+    @Test
+    void cacheable() {
+        Product query1 = productService.getProduct("001");
+        assertEquals("001", query1.getId());
+
+        Product query2 = productService.getProduct("001");
+        assertEquals(query1, query2);
+
+        Product query3 = productService.getProduct("002");
+        assertEquals(query1, query2);
+    }
+
+    @Test
+    void cachePut() {
+        Product product = Product.builder()
+                .id("P002")
+                .name("Asal")
+                .price(100L)
+                .build();
+        productService.save(product);
+
+        Product query = productService.getProduct("P002");
+        assertEquals(product, query);
+    }
+
+    @Test
+    void cacheEvict() {
+        Product product = productService.getProduct("003");
+        assertEquals("003", product.getId());
+
+        productService.remove("003");
+
+        Product product2 = productService.getProduct("003");
+        assertEquals(product2, product);
     }
 }
