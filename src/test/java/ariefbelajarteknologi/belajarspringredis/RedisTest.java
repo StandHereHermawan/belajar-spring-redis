@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.RedisSystemException;
@@ -40,6 +42,9 @@ public class RedisTest {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Test
     void redisTemplate() {
@@ -317,9 +322,9 @@ public class RedisTest {
         assertEquals(product, query);
 
         Map<Object, Object> map = redisTemplate.opsForHash().entries("products:1");
-        assertEquals(product.getId(),map.get("id"));
-        assertEquals(product.getName(),map.get("name"));
-        assertEquals(product.getPrice().toString(),map.get("price"));
+        assertEquals(product.getId(), map.get("id"));
+        assertEquals(product.getName(), map.get("name"));
+        assertEquals(product.getPrice().toString(), map.get("price"));
     }
 
     @Test
@@ -336,6 +341,21 @@ public class RedisTest {
 
         Thread.sleep(Duration.ofSeconds(5));
         assertFalse(productRepository.findById("1").isPresent());
+    }
 
+    @Test
+    void cache() {
+        Cache cache = cacheManager.getCache("scores");
+        cache.put("Arief", 85);
+        cache.put("Hilmi", 85);
+
+        assertEquals(85,cache.get("Arief",Integer.class));
+        assertEquals(85,cache.get("Hilmi",Integer.class));
+
+        cache.evict("Arief");
+        cache.evict("Hilmi");
+
+        assertNull(cache.get("Arief"));
+        assertNull(cache.get("Hilmi"));
     }
 }
